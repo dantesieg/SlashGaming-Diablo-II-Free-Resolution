@@ -10,15 +10,18 @@ jobs:
         with:
           submodules: recursive
       - uses: ilammy/setup-nasm@v1
+      # Relative includes in SGD2MAPI exceed MAX_PATH under D:\a\<repo>\<repo>; build from a subst drive.
       - name: Configure
-        run: cmake -S . -B build -G "Visual Studio 17 2022" -A Win32
+        run: |
+          subst X: "$env:GITHUB_WORKSPACE"
+          cmake -S X:\ -B X:\b -G "Visual Studio 17 2022" -A Win32
       - name: Build
-        run: cmake --build build --config Release --parallel
+        run: cmake --build X:\b --config Release --parallel
       - name: Collect
         shell: bash
         run: |
           mkdir -p out
-          find build -iname "SGD2FreeRes*.dll" -path "*Release*" -exec cp {} out/ \;
+          find b -iname "SGD2FreeRes*.dll" -path "*Release*" -exec cp {} out/ \;
           cp COPYING LICENSE.md README.md CHANGELOG.md out/
           echo "Source: https://github.com/${{ github.repository }} commit ${{ github.sha }}" > out/SOURCE.txt
           ls -la out
